@@ -8,6 +8,7 @@ Identifies groups of images depicting the same physical scene using computer vis
 2. **Matches features** across all image pairs using LightGlue
 3. **Filters matches** based on geometric confidence thresholds
 4. **Clusters images** into scene groups using graph connectivity
+5. **Organizes clusters** into structured directories for downstream processing
 
 ## Quick Start
 
@@ -72,6 +73,27 @@ python3 lightglue_pipeline_cuda.py \
   --match_batch_size 32
 ```
 
+### Organizing Clusters (Important Next Step)
+
+After running the pipeline, organize images into cluster directories for further processing:
+
+```bash
+python3 scripts/postprocessing/organize_clusters.py \
+  --cluster_dir outputs/lightglue_cuda \
+  --source_dir images \
+  --output_dir out/organized_clusters \
+  --min_size 2
+```
+
+This copies images from each `scene_cluster_NNN.txt` file into organized directories (`cluster_001/`, `cluster_002/`, etc.). This structured output is essential for downstream processing and analysis.
+
+**Options:**
+- `--cluster_dir`: Location of scene_cluster_*.txt files (default: `out/clusters`)
+- `--source_dir`: Original images directory (default: `images`)
+- `--output_dir`: Where to create cluster directories (default: `out/organized_clusters`)
+- `--min_size`: Minimum cluster size to process (default: 2)
+- `--dry_run`: Preview changes without copying files
+
 ## Outputs
 
 Results saved to `outputs/lightglue_cuda/`:
@@ -95,7 +117,7 @@ Results saved to `outputs/lightglue_cuda/`:
 **RTX 3080:**
 - Feature extraction: ~50-100 images/sec
 - Matching: ~500-1000 pairs/sec
-- 10K images: ~12-24 hours full N×N matching
+- 10K images: ~12-24 hours full Nï¿½N matching
 
 **Apple Silicon (MPS):**
 - Feature extraction: ~10-30 images/sec
