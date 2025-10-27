@@ -8,6 +8,35 @@ This is an image scene matching and clustering project for Unsplash photos. The 
 
 ## Core Architecture
 
+### Directory Structure
+
+```
+.
+├── lightglue_pipeline_cuda.py    # Production CUDA pipeline
+├── kornia_pipeline.py             # macOS/MPS compatible pipeline
+├── run_cuda_pipeline.sh           # Main entry point script
+├── scripts/
+│   ├── postprocessing/            # Cluster analysis and organization
+│   │   ├── cluster_images.py
+│   │   ├── build_clusters_from_matches.py
+│   │   └── organize_clusters.py
+│   ├── visualization/             # Result visualization tools
+│   │   ├── visualize_results.py
+│   │   ├── visualize_overlaps.py
+│   │   └── visualize_overlap_matrix.py
+│   ├── analysis/                  # Diagnostic and analysis tools
+│   │   └── diagnose_matches.py
+│   └── legacy/                    # Earlier pipeline implementations
+│       ├── lightglue_pipeline.py
+│       ├── lightglue_pipeline_full.py
+│       ├── run_full_pipeline.py
+│       ├── simple_scene_matching.py
+│       └── match_features_cpu.py
+├── outputs/                       # Pipeline outputs
+├── images/                        # Input images
+└── tools/                         # Additional utilities
+```
+
 ### Pipeline Approaches
 
 The project implements multiple feature matching pipelines:
@@ -23,15 +52,10 @@ The project implements multiple feature matching pipelines:
    - Supports multiple feature types: DISK, DeDoDe, SuperPoint
    - Compatible with MPS (Apple Silicon), CUDA, and CPU
 
-3. **Simple Global Features** (`run_full_pipeline.py`, `simple_scene_matching.py`) - Fallback approach
-   - Uses global features (NetVLAD or color histograms) for similarity matching
-   - No local feature matching required
-   - Faster but less accurate than geometric matching
-
-4. **Clustering** (`cluster_images.py`) - Post-processing tool
-   - Clusters images using pre-computed global features
-   - Supports K-means and DBSCAN algorithms
-   - Includes PCA visualization
+3. **Legacy Pipelines** (`scripts/legacy/`) - Earlier explorations
+   - Simple global features approach (NetVLAD, color histograms)
+   - CPU-based matching implementations
+   - Kept for reference and experimentation
 
 ### Processing Flow
 
@@ -112,17 +136,17 @@ python3 kornia_pipeline.py \
   --min_matches 30 \
   --min_confidence 0.3
 
-# Global features approach
-python3 run_full_pipeline.py \
-  --threshold 0.75 \
-  --num_pairs 60
-
-# Clustering from global features
-python3 cluster_images.py \
+# Post-processing: Clustering from global features
+python3 scripts/postprocessing/cluster_images.py \
   --features outputs/global-feats-netvlad.h5 \
   --method kmeans \
   --n_clusters 20 \
   --visualize
+
+# Legacy: Global features approach
+python3 scripts/legacy/run_full_pipeline.py \
+  --threshold 0.75 \
+  --num_pairs 60
 ```
 
 ### Testing CUDA Setup
@@ -181,7 +205,7 @@ def build_scene_clusters(matches):
         graph[img2].add(img1)
 
     # DFS to find connected components
-    # See cluster_images.py:286-316
+    # See scripts/postprocessing/cluster_images.py:286-316
 ```
 
 ### Configuration Presets
