@@ -27,9 +27,9 @@ fi
 
 # Verify CUDA setup
 echo -e "${GREEN}🔧 Verifying CUDA setup...${NC}"
-python3 -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
+uv run python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
 
-if ! python3 -c "import torch; exit(0 if torch.cuda.is_available() else 1)"; then
+if ! uv run python -c "import torch; exit(0 if torch.cuda.is_available() else 1)"; then
     echo -e "${RED}❌ CUDA not available! Please check your setup.${NC}"
     exit 1
 fi
@@ -54,10 +54,10 @@ case $MODE in
     "small")
         echo -e "${YELLOW}📊 Running SMALL mode (1000 images)${NC}"
         MAX_IMAGES=1000
-        MIN_MATCHES=30
-        MIN_CONFIDENCE=0.4
-        FEATURE_BATCH=32
-        MATCH_BATCH=64
+        MIN_MATCHES=5
+        MIN_CONFIDENCE=0.5
+        FEATURE_BATCH=1
+        MATCH_BATCH=1
         MAX_PAIRS=50000
         ;;
     "medium")
@@ -65,17 +65,17 @@ case $MODE in
         MAX_IMAGES=5000
         MIN_MATCHES=40
         MIN_CONFIDENCE=0.5
-        FEATURE_BATCH=32
-        MATCH_BATCH=64
+        FEATURE_BATCH=8
+        MATCH_BATCH=16
         MAX_PAIRS=500000
         ;;
     "large")
         echo -e "${YELLOW}🌟 Running LARGE mode (all images)${NC}"
         MAX_IMAGES=""
         MIN_MATCHES=50
-        MIN_CONFIDENCE=0.5
-        FEATURE_BATCH=32
-        MATCH_BATCH=64
+        MIN_CONFIDENCE=0.8
+        FEATURE_BATCH=8
+        MATCH_BATCH=16
         MAX_PAIRS=""
         ;;
     "custom")
@@ -103,7 +103,7 @@ case $MODE in
 esac
 
 # Build command
-CMD="python3 lightglue_pipeline_cuda.py"
+CMD="uv run python lightglue_pipeline_cuda.py"
 CMD="$CMD --image_dir $IMAGE_DIR"
 CMD="$CMD --output_dir $OUTPUT_DIR"
 CMD="$CMD --min_matches $MIN_MATCHES"
