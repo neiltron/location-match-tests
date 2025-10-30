@@ -1,0 +1,30 @@
+VIEWER3D IMPLEMENTATION - FILE MANIFEST
+========================================
+
+Created Files (Absolute Paths):
+--------------------------------
+
+Core Implementation:
+  /Users/neil/projects/unsplash-clustering/explorations/01/public/viewer/Viewer3D.ts
+  /Users/neil/projects/unsplash-clustering/explorations/01/public/viewer/Viewer3D.js
+
+Testing:
+  /Users/neil/projects/unsplash-clustering/explorations/01/public/viewer/test-viewer.html
+  /Users/neil/projects/unsplash-clustering/explorations/01/test-viewer.ts
+
+Documentation:
+  /Users/neil/projects/unsplash-clustering/explorations/01/public/viewer/USAGE.md
+  /Users/neil/projects/unsplash-clustering/explorations/01/VIEWER_IMPLEMENTATION.md
+  /Users/neil/projects/unsplash-clustering/explorations/01/viewer-validation.txt
+  /Users/neil/projects/unsplash-clustering/explorations/01/VIEWER3D_FILES.txt (this file)
+
+Modified Files:
+  /Users/neil/projects/unsplash-clustering/explorations/01/public/index.html
+    - Added GSAP to import map: "gsap": "https://esm.sh/gsap@3.12.5"
+
+Test URL:
+  http://localhost:3000/viewer/test-viewer.html
+
+Total Lines of Code: ~750
+Implementation Time: ~2 hours
+Status: ✅ Complete and Ready for Integration

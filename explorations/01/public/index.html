@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VGGT Explorer - 3D Scene Reconstruction</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://esm.sh/three@0.160.0",
+        "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+        "gsap": "https://esm.sh/gsap@3.12.5"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Main Header -->
+    <header class="app-header">
+      <h1>VGGT Explorer</h1>
+      <p class="subtitle">Interactive 3D Scene Reconstruction</p>
+      <div class="status-bar" id="statusBar">
+        <span class="status-indicator" id="statusIndicator"></span>
+        <span class="status-text" id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- Left Sidebar: Run History -->
+      <aside class="sidebar sidebar-left">
+        <div class="sidebar-header">
+          <h2>Run History</h2>
+          <button class="btn-icon" id="refreshHistoryBtn" title="Refresh">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+              <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="run-history" id="runHistory">
+          <div class="loading-placeholder">Loading runs...</div>
+        </div>
+      </aside>
+
+      <!-- Center: Upload & Settings -->
+      <main class="main-content">
+        <!-- Run Details Panel (shown during processing) -->
+        <div id="runDetails" class="run-details hidden">
+          <div class="run-details-header">
+            <h3>Processing Run <span id="runId" class="run-id-display"></span></h3>
+            <div class="status-badge" id="runStatus">Queued</div>
+          </div>
+
+          <div id="runProgress" class="progress-section hidden">
+            <div class="progress-bar-container">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+            <div id="progressText" class="progress-text">Initializing...</div>
+          </div>
+
+          <div class="run-info">
+            <div class="info-row">
+              <span class="label">Images:</span>
+              <span id="imageCount">0</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Settings:</span>
+              <span id="runSettings"></span>
+            </div>
+            <div class="info-row">
+              <span class="label">Started:</span>
+              <span id="runStarted"></span>
+            </div>
+            <div class="info-row">
+              <span class="label">Status:</span>
+              <span id="runStatusDetail"></span>
+            </div>
+          </div>
+
+          <div class="uploaded-images">
+            <h4>Uploaded Images</h4>
+            <div id="runImages" class="thumbnail-grid"></div>
+          </div>
+        </div>
+
+        <section class="upload-section">
+          <div class="section-header">
+            <h2>Image Upload</h2>
+            <span class="image-counter" id="imageCounter">0 images</span>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-prompt">
+              <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+              </svg>
+              <p class="upload-text">Drag & drop images here</p>
+              <p class="upload-subtext">or click to browse</p>
+              <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            </div>
+            <div class="thumbnail-grid" id="thumbnailGrid" style="display: none;"></div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="section-header">
+            <h2>VGGT Settings</h2>
+          </div>
+          <div class="settings-form" id="settingsForm">
+            <!-- Confidence Threshold -->
+            <div class="form-group">
+              <label for="confThreshold">
+                Confidence Threshold
+                <span class="value-display" id="confThresholdValue">45</span>
+              </label>
+              <input
+                type="range"
+                id="confThreshold"
+                min="0"
+                max="100"
+                value="45"
+                step="1"
+                class="slider"
+              >
+              <div class="slider-labels">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+              </div>
+            </div>
+
+            <!-- Prediction Mode -->
+            <div class="form-group">
+              <label>Prediction Mode</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="predictionMode" value="pointmap" checked>
+                  <span>Point Map</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="predictionMode" value="depth">
+                  <span>Depth</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Masking Options -->
+            <div class="form-group">
+              <label>Masking Options</label>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="maskBlackBg">
+                  <span>Mask Black Background</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="maskWhiteBg">
+                  <span>Mask White Background</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="maskSky">
+                  <span>Mask Sky</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Show Cameras -->
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="showCameras" checked>
+                <span>Show Camera Frustums</span>
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn-primary" id="submitBtn" disabled>
+              <span>Process Images</span>
+            </button>
+
+            <button class="btn-secondary" id="rerunBtn" disabled>
+              <span>Re-run Selected Run</span>
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <!-- Right: 3D Viewer -->
+      <aside class="sidebar sidebar-right">
+        <div class="sidebar-header">
+          <h2>3D Viewer</h2>
+          <div class="viewer-controls">
+            <button class="btn-icon" id="resetViewBtn" title="Reset View">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="viewer-container" id="viewerContainer">
+          <div class="viewer-placeholder">
+            <svg width="64" height="64" viewBox="0 0 16 16" fill="currentColor" opacity="0.3">
+              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
+            </svg>
+            <p>No model loaded</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

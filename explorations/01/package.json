@@ -1,0 +1,23 @@
+{
+  "name": "vggt-explorer",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot server/index.ts",
+    "build": "bun build server/index.ts --outdir ./dist"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "latest",
+    "@elysiajs/static": "latest",
+    "@gradio/client": "latest",
+    "elysia": "latest",
+    "fflate": "^0.8.2",
+    "gsap": "^3.13.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/three": "^0.180.0",
+    "typescript": "latest"
+  }
+}

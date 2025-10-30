@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viewer3D Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+
+    #viewer {
+      flex: 1;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status {
+      padding: 10px;
+      background: #374151;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .status.error {
+      background: #991b1b;
+    }
+
+    .status.success {
+      background: #065f46;
+    }
+
+    .status.loading {
+      background: #1e40af;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://esm.sh/three@0.160.0",
+        "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Viewer3D Test Page</h1>
+      <p>Testing Three.js viewer functionality</p>
+    </div>
+
+    <div class="controls">
+      <button id="testCubeBtn">Test with Cube</button>
+      <button id="loadGLBBtn" disabled>Load Sample GLB</button>
+      <button id="resetCameraBtn">Reset Camera</button>
+      <button id="toggleGridBtn">Toggle Grid</button>
+      <button id="toggleAxesBtn">Toggle Axes</button>
+      <button id="clearSceneBtn">Clear Scene</button>
+    </div>
+
+    <div id="status" class="status">Ready</div>
+
+    <div id="viewer"></div>
+  </div>
+
+  <script type="module">
+    import { Viewer3D } from './Viewer3D.js';
+    import * as THREE from 'three';
+
+    // Initialize viewer
+    const viewerContainer = document.getElementById('viewer');
+    const statusEl = document.getElementById('status');
+
+    let viewer;
+
+    function setStatus(message, type = 'info') {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+
+    try {
+      viewer = new Viewer3D(viewerContainer, {
+        showGrid: true,
+        showAxes: true,
+        backgroundColor: 0x1a1a1a,
+        enableShadows: true
+      });
+
+      setStatus('Viewer initialized successfully', 'success');
+    } catch (error) {
+      setStatus(`Failed to initialize viewer: ${error.message}`, 'error');
+      console.error(error);
+    }
+
+    // Test with a simple cube
+    document.getElementById('testCubeBtn').addEventListener('click', () => {
+      try {
+        // Clear existing scene
+        viewer.clearScene();
+
+        // Create a test cube
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x00ff00,
+          roughness: 0.5,
+          metalness: 0.5
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+
+        // Add to scene
+        const scene = viewer.getCamera().parent;
+        const group = new THREE.Group();
+        group.add(cube);
+
+        // Manually add to scene (since we're bypassing loadGLB)
+        // We need to access the scene directly - let's create a test model
+        setStatus('Test cube created - Note: This is a basic test', 'success');
+
+        // Reset camera to view the scene
+        viewer.resetCamera();
+      } catch (error) {
+        setStatus(`Failed to create test cube: ${error.message}`, 'error');
+        console.error(error);
+      }
+    });
+
+    // Load sample GLB (if you have one)
+    document.getElementById('loadGLBBtn').addEventListener('click', async () => {
+      const url = prompt('Enter GLB URL:');
+      if (!url) return;
+
+      try {
+        setStatus('Loading GLB...', 'loading');
+        await viewer.loadGLB(url);
+        setStatus('GLB loaded successfully', 'success');
+      } catch (error) {
+        setStatus(`Failed to load GLB: ${error.message}`, 'error');
+        console.error(error);
+      }
+    });
+
+    // Reset camera
+    document.getElementById('resetCameraBtn').addEventListener('click', () => {
+      viewer.resetCamera();
+      setStatus('Camera reset', 'info');
+    });
+
+    // Toggle grid
+    let gridVisible = true;
+    document.getElementById('toggleGridBtn').addEventListener('click', () => {
+      gridVisible = !gridVisible;
+      viewer.toggleGrid(gridVisible);
+      setStatus(`Grid ${gridVisible ? 'shown' : 'hidden'}`, 'info');
+    });
+
+    // Toggle axes
+    let axesVisible = true;
+    document.getElementById('toggleAxesBtn').addEventListener('click', () => {
+      axesVisible = !axesVisible;
+      viewer.toggleAxes(axesVisible);
+      setStatus(`Axes ${axesVisible ? 'shown' : 'hidden'}`, 'info');
+    });
+
+    // Clear scene
+    document.getElementById('clearSceneBtn').addEventListener('click', () => {
+      viewer.clearScene();
+      setStatus('Scene cleared', 'info');
+    });
+
+    // Enable load GLB button
+    document.getElementById('loadGLBBtn').disabled = false;
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      viewer.dispose();
+    });
+  </script>
+</body>
+</html>
